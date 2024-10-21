@@ -1,0 +1,8 @@
+MATLAB 2011b or higher
+
+or 
+
+Octave 3.8 and above
+
+The verbose error computations rely on the lyap function available in
+the control toolboxes of both the above.

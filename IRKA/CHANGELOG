@@ -1,0 +1,9 @@
+# IRKA Implementation
+
+Jens Saak 2016-04-15
+reintroduced tangential directions and TangentialKrylov to support MIMO systems 
+while keeping the consistency with the original SISO implementation.
+
+Joerg Fehr 2016-03-17
+modified IRKA implementation to be very simple, removed tangential directions
+to be more consistent to original implementation of [GugercinAntoulasBeattie08]

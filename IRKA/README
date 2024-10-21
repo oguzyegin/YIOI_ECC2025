@@ -1,0 +1,30 @@
+# IRKA Example A very rudimentary and simple implementation of the
+iteratively corrected rational Krylov algorithm for $H_2$ model
+reduction proposed by Gugercin, Antoulas and Beattie
+[GugercinAntoulasBeattie08]. Part of this work is taken from the
+thesis of Heiko K.F. Panzer [Panzer14].
+
+This implementation was made for the Paper BEST PRACTICES FOR
+NUMERICAL REPLICABILITY, REPRODUCIBILITY AND REUSABILITY EXEMPLIFIED
+BY MODEL REDUCTION SOFTWARE
+
+This code is published under the BSD3-Clause License.
+
+This implementation either runs with Matlab or with Octave
+
+## Installation
+
+1. No installation is required. Simply copy the files to a directory
+on your MATLAB path or change to the directory and run the examples in
+RUNME.m
+
+
+### Literature:
+
+[Panzer14] H. Panzer; Model Order Reduction by Krylov Subspace Methods
+	with Global Error Bounds and Automatic Choice of
+	Parameters. Doctoral Thesis Technische Universität München, 2014.
+
+[GugercinAntoulasBeattie08] S. Gugercin; A.C. Antoulas; C. Beattie:
+	"H2 Model Reduction for Large- Scale Linear Dynamical Systems",
+	SIAM. J. Matrix Anal. & Appl., vol.30, no.2, pp.609-638, 2008.
