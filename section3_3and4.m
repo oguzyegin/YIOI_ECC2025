@@ -174,13 +174,13 @@ close all;
 % figure(5); hold on; semilogx(w,psi_pade,'k-.','LineWidth',2);
 % figure(5); hold on; semilogx(w,psi_pa,'b-.','LineWidth',2);
 % legend({'ssest','tfest-balred','hna','systune','IRKA','pade','plant app.','moment matching'},'Location','northwest')
-figure(5); semilogx(w,psi_systune,'k','LineWidth',1);
+figure(5); clf; semilogx(w,psi_systune,'k','LineWidth',1);
 hold on; semilogx(w,psi_irka,'g','LineWidth',1);
 semilogx(w,psi_mm6,'r','LineWidth',1);
 semilogx(w([1 length(w)]),[gopt gopt],'b');
 legend({'systune','IRKA','MM','\gamma_{opt}'},'Location','northwest')
-xlabel('Frequency (rad/s)'); ylabel('$\Psi_a(j\omega)$','Interpreter','latex');
-title('Performance Levels for $\nu=6,~h=0.75$','Interpreter','latex')
+xlabel('$\omega$','Interpreter','latex'); ylabel('$\Psi_a(j\omega)$','Interpreter','latex');
+title('Performance Levels for $\nu=6,~\widehat{h}=0.75,~\widehat{k}=2$','Interpreter','latex')
 set(gca,'FontSize',16,'FontName','Times New Roman'); grid on;
 
 g6_h75 = [g_ssest, g_balred, g_hna, g_systune, g_irka, g_pade, g_mm6, g_pa];
@@ -200,8 +200,15 @@ Copt_TF = H0*Cpi;
 figure(6); clf; loglog(w,m1,'k','LineWidth',2);
 hold on; loglog(w,m3,'g','LineWidth',2); loglog(w,m2,'r','LineWidth',2);
 legend({'systune','IRKA','MM'},'Location','northwest')
-xlabel('Frequency (rad/s)'); ylabel('Relative Error','Interpreter','latex');
-title('$|| 1 - C_a/C_{opt}||_\infty$ for $\nu=6,~h=0.75$','Interpreter','latex')
+xlabel('$\omega$','Interpreter','latex'); ylabel('Relative Error','Interpreter','latex');
+title('$|1 - C_a/C_{\rm opt}|$ for $\nu=6,~\widehat{h}=0.75,~\widehat{k}=2$','Interpreter','latex')
 set(gca,'FontSize',16,'FontName','Times New Roman'); grid on;
 xlim([1e-1,1e3]); ylim([5e-5,1]);
 
+%%
+syms s;
+H_mm6 = (0.8044*(s+156.1)*(s^2 - 2.265*s + 71.8)*(s^2 - 1.873*s + 300))/...
+    ((s^2 + 13*s + 50.4)*(s^2 + 11.11*s + 106)*(s^2 + 7.22*s + 221.8));
+H_mm6 = sym2tf(H_mm6);
+C_mm6 = Cpi*feedback(1,H_mm6);
+[psi_mmb6,g_mmb6] = perf_level(W1,W2,sym2tf(No/Md),Mn,C_mm6,w);
