@@ -1,17 +1,19 @@
 % Used https://nl.mathworks.com/help/symbolic/inv.html
 clc
 clear all
+close all
 
 n=6;
 
-% BEST ORD 6 h=.75 k=2 Gamma_opt=10.518
+% MM6 approximation Gamma_MM6=10.5176
+% h=.75 k=2 
 % % moments
 % sigma1=2.375;sigma2=0.685;
 % f1 = 7; f2 =12.439;
 % s1=0; s2=4.3; 
 % s3=sigma1-f1*1i; s4=sigma1+f1*1i; 
 % s5=sigma2-f2*1i; s6=sigma2+f2*1i;
-%Gamma_opt=10.518 
+%Gamma_opt=10.5176 
 %s1=0;s2=4.3;s34=2.375+/-7j;s56=4.3+/-12.439j
 % Kr6_tf =
 % 
@@ -25,12 +27,16 @@ n=6;
       % -5.9436 +     8.4326i
       % -5.9436 -     8.4326i
 
-% moments
+
+%Gamma_MM6 = 10.518 
+% 
+% moments 
 sigma1=2.375;sigma2=0.685;
 f1 = 7; f2 =12.439;
 s1=0; s2=4.3; 
 s3=sigma1-f1*1i; s4=sigma1+f1*1i; 
 s5=sigma2-f2*1i; s6=sigma2+f2*1i;
+%a better Gamma_MM6 = 10.5164 can be obtained if one takes f2=12.4113)
 
 % moments
 %f1 = 10; f2 =18;
@@ -101,8 +107,8 @@ S = [s1, 0, 0, 0, 0, 0;
 L = [1, 1, 0, sqrt(2), 0, sqrt(2)]
 
 %Define G and F, where F = S - G*L
-G = [g11; g12; g13; g14; g15; g16];
-F = S - G * L
+G = [g11; g12; g13; g14; g15; g16]
+F = S - G * L;
 
 % Define the matrix H as a 1x6 row vector using the real and imaginary parts
 %H = [eta0, eta1, -imag(eta3), real(eta3), -imag(eta5), real(eta5)]
@@ -119,16 +125,13 @@ Krg = H * inv_sF * G;
 % Extract the (1,1) element of the result
 % Display the result
 Krg_11 = Krg(1, 1);
-disp('The (H * inv(s - F) * G)(1,1) is:');
-disp(simplify(Krg_11));
+%disp('The (H * inv(s - F) * G)(1,1) is:');
 dKrg_11(s) = diff(Krg_11, s);
 
 
 % Compute derivatives and evaluate at specific points
 % Display the results
 m = subs(dKrg_11(s), s, [s1, s2, s3, s4, s5, s6]);
-disp('The values of m are:');
-disp(m);
 
 
 % Define the equations based on m0, m1, m2, m3, m4, and m5
@@ -149,13 +152,13 @@ options = optimoptions('fsolve', 'TolFun', 1e-12, 'TolX', 1e-12, 'Display', 'ite
 [gg, fval, exitflag] = fsolve(fsolve_func, initial_guess, options);
 
 % Display the results
-Gg=double(real(gg'));
 disp('The solution for g11, g12, g13, g14, g15, g16 is:');
-disp(Gg);
+Gg=double(real(gg'))
+%disp(Gg)
 
 % Find Fg
-F_subst = double(S - Gg.* L) % Substitute the values in Gg into F
-Fg_imaginar=imag(F_subst) % verify Fg is zero 
+F_subst = double(S - Gg.* L); % Substitute the values in Gg into F
+Fg_imaginar=imag(F_subst); % verify Fg is zero 
 Fg=real(F_subst) % to aavoit unnecessary errors due to zero imag part
 disp('The eigenvalues of Fg are:');
 eig(Fg)
@@ -178,21 +181,17 @@ Kr6_tf
 % Construct the transfer function in symbolic form
 Kr6_symbolic = poly2sym(num, s) / poly2sym(den, s);
 
-% Display the symbolic transfer function
-disp('The symbolic transfer function is:');
-disp(Kr6_symbolic);
-
 
 %%%%% De calculat aproximantul Kr6 pt evaluari in momente s1 etc
 %% Compute Krg as (H * inv(s - F) * G)
-Kr6_in_s(s) = simplify(H * (inv(s * eye(6) - Fg)) * Gg)
+Kr6_in_s(s) = simplify(H * (inv(s * eye(6) - Fg)) * Gg);
 
 
 %De pus restul check the moments
 HoptTF_at_s1 = double(subs(HoptTF(s), s, s1));
-Kr6_in_s_at_s1 = subs(Kr6_in_s(s), s, s1);
+Kr6_in_s_at_s1 = double(subs(Kr6_in_s(s), s, s1));
 HoptTF_at_s2 = double(subs(HoptTF(s), s, s2));
-Kr6_in_s_at_s2 = subs(Kr6_in_s(s), s, s2);
+Kr6_in_s_at_s2 = double(subs(Kr6_in_s(s), s, s2));
 HoptTF_at_s3 = double(subs(HoptTF(s), s, s3));
 Kr6_in_s_at_s3 = double(subs(Kr6_in_s(s), s, s3));
 HoptTF_at_s4 = double(subs(HoptTF(s), s, s4));
@@ -204,7 +203,8 @@ Kr6_in_s_at_s6 = double(subs(Kr6_in_s(s), s, s6));
 
 
 % Display the result
-disp('The value of HoptTF(s1)-Kr6_symbolic_at_s1 is:');
+%disp('The value of HoptTF(s1)-Kr6_symbolic_at_s1 is:');
+disp('Check matching at s_i: H_{opt}(s_i)-H_{MM6}(s_i):');
 disp(HoptTF_at_s1-Kr6_in_s_at_s1);
 disp(HoptTF_at_s2-Kr6_in_s_at_s2);
 disp(HoptTF_at_s3-Kr6_in_s_at_s3);
@@ -218,7 +218,7 @@ disp(HoptTF_at_s6-Kr6_in_s_at_s6);
 
 %Bode plots HKr6 and Hopt
 % Frequency range
-om = logspace(-1, 3, 2000);
+om = logspace(-1, 2, 2000);
 s_freq = 1i * om; % Define s = jω for the frequency response
 
 % Convert K(s) to a transfer function for evaluation Hopt
@@ -268,14 +268,15 @@ ClTFs_resp=sqrt(abs(Sopt_resp ./ s_freq).^2 + abs(khat*s_freq .* Topt_resp).^2);
 % (s^2 + 22.66*s + 133.7)*(s^2 + 19.92*s + 148.3)*(s^2 + 13.42*s + 188.5);
 
 
-% s1=?, s2=?, s34=+-?j, s56=+-?j 
-%Systune% Ord 6 cu gain 
-% HSysTune6 = (0.044446*(s^2-1.962*s + 71.45)*(s^2-1.163*s + 289.1)*(s^2 + 22.11*s + 1293))/...
-%     ((s^2 + 4.943*s + 15.71)*(s^2 + 2.768*s + 107.5)*(s^2 + 1.289*s + 321.7));
+% %OLD systune from report
+% HSysTune6 = 1.1429*(s + 34.63)*(s^2 - 2.542*s + 78.55)*(s^2 - 2.264*s + 286.7)/...
+% ((s^2 + 4.858*s + 14.78)*(s^2 + 2.857*s + 98.74)*(s^2 + 1.117*s + 291.6));
+% 
 
-%systune from report
-HSysTune6 = 1.1429*(s + 34.63)*(s^2 - 2.542*s + 78.55)*(s^2 - 2.264*s + 286.7)/...
-((s^2 + 4.858*s + 14.78)*(s^2 + 2.857*s + 98.74)*(s^2 + 1.117*s + 291.6));
+% %NEW systune from report
+HSysTune6 = (1.0445*(s+42.69)*(s^2 - 2.448*s + 78.13)*(s^2 - 2.369*s + 289.2))/...
+    ((s^2 + 5.729*s + 15.94)*(s^2 + 3.185*s + 96.25)*(s^2 + 1.288*s + 290));
+
 
 HKrST_response = matlabFunction(HSysTune6);
    HKrST=HKrST_response(s_freq);
@@ -312,7 +313,7 @@ subplot(2, 1, 1);
 semilogx(w, mag_K,'b',w, magKr6_tf,'r',w, abs(HKrST),'k-.',w, abs(HIRKA),'g--');
 xlabel('Frequency (rad/s)');
 ylabel('|TF(j\omega)|');
-title('Magnitude of MM6_{tf}, SysTune_{tf}, IRKA_{tf} and HKopt_{tf}');
+title('Magnitude of H_{MM6}-red, H_{SysTune6}-black, H_{IRKA6}-green and H_{opt}-blue');
 grid on;
 
 % Plot the phase
@@ -324,58 +325,104 @@ grid on;
 
 
 % %% Error plot: Hopt-HoptApprox  abs(HSysTune6-Hopt) and abs(HIRKA-Hopt)
-figure(11)
+figure(2)
 %loglog(om,abs(HKrMM-Hopt),'r')
 loglog(om,abs(HKrMM-Hopt),'r',om,abs(HKrST-Hopt),'k-.',om,abs(HIRKA-Hopt),'g--')
-title({'h=.75, k=2, \nu=6: Error plot ', '|MM6-Hopt|-red'},' |SysTune6-Hopt|-black, |IRKA6-Hopt|-green')
+title({'h=.75, k=2, \nu=6: Error plot'}, '|H_{MM6}-H_{opt}|-red, |H_{SysTune6}-H_{opt}|-black, |H_{IRKA6}-H_{opt}|-green')
 
-% %% gamma plot ClTFMM    ClTFST and ClTFIRKA
- figure(12) % gamma
+% %% gamma plot for ClTFMM    ClTFST and ClTFIRKA
+ figure(3) % gamma
  loglog(om,ClTFs_resp,'b',om,ClTFMM,'r',om,ClTFST,'k-.',om,ClTFIRKA,'g--')
 % %semilogx(om,ClTFMM,'r')
 % semilogx(om,ClTF,'b',om,ClTFMM,'r',om,ClTFST,'k-.')
- title({'h=.75, k=2, \nu=6:  \gamma plot','Copt-blue (peak=8.96), MM6-red (peak=10.518)'}, 'SysTune66-black (peak=11.0852), IRKA6-black (peak=11.0166)')
+ title({'h=.75, k=2, \nu=6:  \gamma plot','C_{opt}-blue (peak=8.96), Cl_{MM6}-red (peak=10.518)'}, 'Cl_{SysTune66}-black (peak=11.0852), IRKA6-black (peak=11.0166)')
 
-% figure(13)
-% loglog(om,abs(ClTFMM-ClTF),'r',om,abs(ClTFST-ClTF),'k-.')
-% title('Error plot (h=.75 k=2): ClTFST-red ord 6')
+  figure(4)
+ loglog(om,abs(ClTFMM-ClTFs_resp),'r',om,abs(ClTFST-ClTFs_resp),'k-.',om,abs(ClTFIRKA-ClTFs_resp),'g--')
+ title({'h=.75, k=2, \nu=6: Error plot'}, '|Cl_{MM6}-Cl_{opt}|-red, |Cl_{SysTune6}-Cl_{opt}|-black, |Cl_{IRKA6}-Cl_{opt}|-green')
 
-%%%%%%%%%%%%%%%%%%%%%%
-%Figures to comapre only Opt MM6 and SysTune6
-%%%%%%%%%%%%%%%%%%%%%%
-% % Magnitude plot
-% % Create a figure with two subplots
-% figure(1);
+
+ figure(5)
+ loglog(om,abs(1-ClTFMM./ClTFs_resp),'r',om,abs(1-ClTFST./ClTFs_resp),'k-.',om,abs(1-ClTFIRKA./ClTFs_resp),'g--')
+ title({'h=.75, k=2, \nu=6: Relative Error plot'}, '|1-Cl_{MM6}/Cl_{opt}|-red, |1-Cl_{SysTune6}/Cl_{opt}|-black, |1-Cl_{IRKA6}/Cl_{opt}|-green')
+
+omn=om(1,1:1400);
+ClTFs_respn=ClTFs_resp(1,1:1400);
+ClTFSTn=ClTFST(1,1:1400);
+ClTFIRKAn=ClTFIRKA(1,1:1400);
+ClTFMMn=ClTFMM(1,1:1400);
+
+ figure(6)
+ loglog(omn,abs(1-ClTFMMn./ClTFs_respn),'r',omn,abs(1-ClTFSTn./ClTFs_respn),'k-.',omn,abs(1-ClTFIRKAn./ClTFs_respn),'g--')
+ title({'h=.75, k=2, \nu=6 : Relative error plot restricted to \omega\in[0,14]'}, '|1-Cl_{MM6}Cl_{opt}|-red, |1-Cl_{SysTune6}/Cl_{opt}|-black, |1-Cl_{IRKA6}/Cl_{opt}|-green')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compute the H-infinity norm 
+% %Method 1
+% % Compute the error system
+
+error_normMM = abs(ClTFs_resp - ClTFMM);  
+error_normIRKA = abs(ClTFs_resp - ClTFIRKA);  
+error_normST = abs(ClTFs_resp - ClTFST);  
+
+error_Hinf_normMM = max(error_normMM);
+error_Hinf_normIRKA = max(error_normIRKA);
+error_Hinf_normST = max(error_normST);
+disp('H-infinity Norm of Approximation Error |Cl_{MM6}-Cl_{opt}|:');
+disp(error_Hinf_normMM);
+disp('H-infinity Norm of Approximation Error |Cl_{IRKA6}-Cl_{opt}|:');
+disp(error_Hinf_normIRKA);
+disp('H-infinity Norm of Approximation Error |Cl_{SysTune6}-Cl_{opt}|:');
+disp(error_Hinf_normST);
 % 
-% % Plot the absolute value / the magnitude
-% subplot(2, 1, 1);
-% semilogx(w, mag_K,'b',w, magKr6_tf,'r',w, abs(HKrST),'k-.');
-% xlabel('Frequency (rad/s)');
-% ylabel('|TF(j\omega)|');
-% title('Magnitude of MM6_{tf} SysTune_{tf} and HKopt_{tf}');
-% grid on;
-% 
-% % Plot the phase
-% subplot(2, 1, 2);
-% semilogx(w,phase_K,'b',w, phaseKr6_tf, 'r',w, angle(HKrST),'k-.');
-% xlabel('Frequency (rad/s)');
-% ylabel('Phase (degrees)');
-% grid on;
-% 
-% 
-% % %% Error plot: Hopt-HoptApprox and abs(HSysTune6-Hopt)
-% figure(11)
-% %loglog(om,abs(HKrMM-Hopt),'r')
-% loglog(om,abs(HKrMM-Hopt),'r',om,abs(HKrST-Hopt),'k-.')
-% title('Error plot (h=.75 k=2): HKrMM-red ord 6, ClTFST6-black')
-% 
-% % %% gamma plot ClTFMM  To Be Added ClTFST
-%  figure(12) % gamma
-%  loglog(om,ClTFs_resp,'b',om,ClTFMM,'r',om,ClTFST,'k-.')
-% % %semilogx(om,ClTFMM,'r')
-% % semilogx(om,ClTF,'b',om,ClTFMM,'r',om,ClTFST,'k-.')
-%  title({'Gamma (h=.75 k=2):',' Copt-blue (peak=8.96)', 'ord 6 ClTFMM-red (peak=10.518)', 'ClTFST6-black (peak=10.852)'})
-% 
-% % figure(13)
-% % loglog(om,abs(ClTFMM-ClTF),'r',om,abs(ClTFST-ClTF),'k-.')
-% % title('Error plot (h=.75 k=2): ClTFST-red ord 6')
+% % % Method 2 for double check
+% verror_systemMM = ClTFs_resp - ClTFMM;  
+% verror_systemIRKA = ClTFs_resp - ClTFIRKA;  
+% verror_systemST = ClTFs_resp - ClTFST;  
+% % Compute the H-infinity norm of the error system
+% verror_Hinf_normMM = norm(verror_systemMM, inf);
+% verror_Hinf_normIRKA = norm(verror_systemIRKA, inf);
+% verror_Hinf_normST = norm(verror_systemST, inf);
+% disp('H-infinity Norm of Approximation Error |Cl_{MM6}-Cl_{opt}| Code2:');
+% disp(verror_Hinf_normMM);
+% disp('H-infinity Norm of Approximation Error |Cl_{IRKA6}-Cl_{opt}| Code2:');
+% disp(verror_Hinf_normIRKA);
+% disp('H-infinity Norm of Approximation Error |Cl_{SysTune6}-Cl_{opt}| Code2:');
+% disp(verror_Hinf_normST);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Compute gamma
+gamma_opt = max(abs(ClTFs_resp));
+gamma_MM = max(abs(ClTFMM));
+gamma_IRKA = max(abs(ClTFIRKA));
+gamma_ST = max(abs(ClTFST)); 
+disp('gamma_opt:');
+disp(gamma_opt);
+disp('gamma_MM:');
+disp(gamma_MM);
+disp('gamma_IRKA:');
+disp(gamma_IRKA);
+disp('gamma_ST:');
+disp(gamma_ST);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compute the H2 norm
+% Step 1: Compute the frequency response of the difference (ClTFMM - ClTFs_resp)
+ClTFMM_diff = ClTFMM - ClTFs_resp;
+ClTFIRKA_diff = ClTFIRKA - ClTFs_resp;
+ClTFST_diff = ClTFST - ClTFs_resp;
+
+% Step 2: Compute the H2 norm of the difference
+% The H2 norm is essentially the integral of the square of the magnitude response
+% over the frequency range. This can be approximated numerically.
+H2_normMM = sqrt(trapz(om, abs(ClTFMM_diff).^2));
+H2_normIRKA = sqrt(trapz(om, abs(ClTFIRKA_diff).^2));
+H2_normST = sqrt(trapz(om, abs(ClTFST_diff).^2));
+
+% Display the H2 norm
+disp('The H2 norm of the difference between ClTFMM and ClTF is:');
+disp(H2_normMM);
+disp('The H2 norm of the difference between ClTFIRKA and ClTF is:');
+disp(H2_normIRKA);
+disp('The H2 norm of the difference between ClTFST and ClTF is:');
+disp(H2_normST);
